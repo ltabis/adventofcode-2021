@@ -6,15 +6,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         .map(|line| line.parse::<u64>().unwrap())
         .collect::<Vec<_>>();
 
-    println!("input: {:?}", input);
-
     let mut iterator = input.into_iter().peekable();
     let mut sweep = 0;
     while iterator.peek().is_some() {
         let next = iterator.next().unwrap_or(0);
         let peek = iterator.peek().unwrap_or(&0).clone();
-
-        println!("peek: {}, next: {}", peek, next);
 
         sweep += [0, 1][(peek > next) as usize];
     }
