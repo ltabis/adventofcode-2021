@@ -49,19 +49,19 @@ fn load_input(src: &str) -> Result<(Pile, Vec<Board>), Box<dyn Error>> {
     Ok((pile, boards))
 }
 
-fn check_for_win<'a>(pile: &Pile, boards: &'a mut Vec<Board>) -> Option<&'a Board> {
-    for board in boards {
+fn check_for_win<'a>(pile: &Pile, boards: &'a mut Vec<Board>) -> Option<(usize, &'a Board)> {
+    for (index, board) in boards.iter().enumerate() {
         for row in board.iter() {
             if row.iter().all(|cell| *cell == -1) {
                 // horizontal bingo!
-                return Some(board);
+                return Some((index, board));
             }
         }
 
         for column in 0..4 {
             if board.iter().all(|row| row[column] == -1) {
                 // vertical bingo!
-                return Some(board);
+                return Some((index, board));
             }
         }
     }
@@ -81,12 +81,35 @@ fn get_bingo(pile: Pile, mut boards: Vec<Board>) -> Option<(Board, i64)> {
             }
         }
 
-        if let Some(board) = check_for_win(&pile, &mut boards) {
+        if let Some((_, board)) = check_for_win(&pile, &mut boards) {
             return Some((*board, *number));
         }
     }
 
     None
+}
+
+fn get_last_bingo(pile: Pile, mut boards: Vec<Board>) -> (Board, i64) {
+    for number in &pile {
+        for board in boards.iter_mut() {
+            for row in board {
+                row.iter_mut().for_each(|cell| {
+                    if cell == number {
+                        *cell = -1;
+                    }
+                });
+            }
+        }
+
+        while let Some((index, _)) = check_for_win(&pile, &mut boards) {
+            if boards.len() == 1 {
+                return (boards[0], *number);
+            }
+            boards.remove(index);
+        }
+    }
+
+    return (boards[0], *pile.last().unwrap());
 }
 
 fn ex01(pile: Pile, boards: Vec<Board>) {
@@ -101,18 +124,28 @@ fn ex01(pile: Pile, boards: Vec<Board>) {
     }
 }
 
-fn ex02(input: &Vec<String>) {}
+fn ex02(pile: Pile, boards: Vec<Board>) {
+    let (bingo, winning_number) = get_last_bingo(pile, boards);
+
+    let total = bingo.iter().fold(0, |acc, row| {
+        acc + row
+            .iter()
+            .fold(0, |acc, n| if *n != -1 { acc + *n } else { acc })
+    });
+
+    println!("result ex02: {}", total * winning_number);
+}
 
 #[cfg(test)]
 mod test {
 
-    use crate::{ex01, ex02, get_bingo, load_input};
+    use crate::{ex01, ex02, get_bingo, get_last_bingo, load_input};
 
     #[test]
     fn test_example() {
         let (pile, boards) = load_input("./src/test.txt").unwrap();
 
-        if let Some((bingo, winning_number)) = get_bingo(pile, boards) {
+        if let Some((bingo, winning_number)) = get_bingo(pile.clone(), boards.clone()) {
             let total = bingo.iter().fold(0, |acc, row| {
                 acc + row
                     .iter()
@@ -124,6 +157,16 @@ mod test {
         } else {
             assert!(false)
         }
+
+        let (bingo, winning_number) = get_last_bingo(pile, boards);
+        let total = bingo.iter().fold(0, |acc, row| {
+            acc + row
+                .iter()
+                .fold(0, |acc, n| if *n != -1 { acc + *n } else { acc })
+        });
+
+        assert_eq!(winning_number, 13);
+        assert_eq!(total, 148);
     }
 
     #[test]
@@ -135,8 +178,8 @@ mod test {
 
     #[test]
     fn test_ex02() {
-        let input = load_input("./src/input.txt").unwrap();
+        let (pile, boards) = load_input("./src/input.txt").unwrap();
 
-        // println!("exercice 2 input result: {}", ex02(&input));
+        ex02(pile, boards);
     }
 }
