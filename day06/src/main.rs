@@ -1,9 +1,5 @@
 fn main() {
-    let data = load_data("./src/input.txt").unwrap();
-    println!(
-        "ex02 result: {}",
-        Simulation::new().simulate(256, data).len()
-    );
+    ()
 }
 
 fn load_data(src: &str) -> std::io::Result<Vec<u8>> {
@@ -52,6 +48,31 @@ impl Simulation {
 
         data
     }
+
+    fn simulate_enhanced(&self, days: usize, fishes: Vec<u8>) -> usize {
+        let mut population_days_left = [0; 9];
+
+        // init.
+        fishes
+            .iter()
+            .for_each(|fish| population_days_left[*fish as usize] += 1);
+
+        for _ in 0..days {
+            let reset = population_days_left[0];
+
+            population_days_left[0] = population_days_left[1];
+            population_days_left[1] = population_days_left[2];
+            population_days_left[2] = population_days_left[3];
+            population_days_left[3] = population_days_left[4];
+            population_days_left[4] = population_days_left[5];
+            population_days_left[5] = population_days_left[6];
+            population_days_left[6] = population_days_left[7] + reset;
+            population_days_left[7] = population_days_left[8];
+            population_days_left[8] = reset;
+        }
+
+        population_days_left.iter().fold(0, |acc, pop| acc + pop)
+    }
 }
 
 #[cfg(test)]
@@ -70,12 +91,33 @@ mod test {
     }
 
     #[test]
+    fn test_example_enhanced() {
+        let data1 = load_data("./src/example.txt").unwrap();
+        let data2 = data1.clone();
+        let data3 = data1.clone();
+
+        assert_eq!(Simulation::new().debug().simulate_enhanced(18, data1), 26);
+        assert_eq!(Simulation::new().simulate_enhanced(80, data2), 5934);
+        assert_eq!(Simulation::new().simulate_enhanced(256, data3), 26984457539);
+    }
+
+    #[test]
     fn test_ex01() {
         let data = load_data("./src/input.txt").unwrap();
 
         println!(
             "ex01 result: {}",
             Simulation::new().simulate(80, data).len()
+        );
+    }
+
+    #[test]
+    fn test_ex02() {
+        let data = load_data("./src/input.txt").unwrap();
+
+        println!(
+            "ex02 result: {}",
+            Simulation::new().simulate_enhanced(256, data)
         );
     }
 }
