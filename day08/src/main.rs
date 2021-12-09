@@ -1,10 +1,35 @@
 fn main() {
-    ()
+    let input = load_input("./src/input.txt").expect("failed to read input");
+
+    println!("ex01: {}", get_simple_numbers_occurence(&input));
+}
+
+fn get_simple_numbers_occurence(data: &Vec<Data>) -> usize {
+    data.iter().fold(0, |acc, data| {
+        acc + data.digits.iter().fold(0, |acc, digit| {
+            // acc + get_digit(digit.len()).is_some() as usize
+            acc + if get_digit(digit.len()).is_some() {
+                1
+            } else {
+                0
+            }
+        })
+    })
 }
 
 struct Data {
     patterns: Vec<String>,
     digits: Vec<String>,
+}
+
+fn get_digit(size: usize) -> Option<u8> {
+    match size {
+        2 => Some(1),
+        4 => Some(4),
+        3 => Some(7),
+        7 => Some(8),
+        _ => None,
+    }
 }
 
 fn get_patterns(input: &str) -> Vec<String> {
@@ -36,11 +61,11 @@ fn load_input(path: &str) -> std::io::Result<Vec<Data>> {
 
 #[cfg(test)]
 mod test {
-    use crate::{load_input, Data};
+    use crate::{get_simple_numbers_occurence, load_input, Data};
 
     #[test]
     fn test_data_loading() {
-        let input = load_input("./src/test.txt").expect("failed to read input");
+        let input = load_input("./src/test1.txt").expect("failed to read input");
 
         assert!(match &input[..] {
             [Data { .. }] => true,
@@ -72,5 +97,13 @@ mod test {
             ["cdfeb", "fcadb", "cdfeb", "cdbaf"] => true,
             _ => false,
         });
+    }
+
+    #[test]
+    fn test_simple_numbers_occurence() {
+        let input = load_input("./src/test2.txt").expect("failed to read input");
+
+        assert_eq!(input.iter().len(), 10);
+        assert_eq!(get_simple_numbers_occurence(&input), 26);
     }
 }

@@ -11,5 +11,5 @@ Cargo.lock
 
 **/target
 **/input.txt
-**/test.txt
+**/test*.txt
 **/example.txt
