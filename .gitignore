@@ -12,4 +12,4 @@ Cargo.lock
 **/target
 **/input.txt
 **/test*.txt
-**/example.txt
+**/example*.txt
