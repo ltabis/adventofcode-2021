@@ -1,10 +1,9 @@
 use std::{error::Error, fmt::Display};
 
 fn main() {
-    println!(
-        "ex01 result's: {}",
-        load_input("./src/input.txt").unwrap().count_flashes(100)
-    );
+    let (simultaneous, flashes) = load_input("./src/input.txt").unwrap().count_flashes(1000);
+    println!("ex01 result's: {}", flashes);
+    println!("ex02 result's: {:?}", simultaneous);
 }
 
 const DIR_SIZE: usize = 8;
@@ -119,7 +118,7 @@ impl Map {
         flashes
     }
 
-    pub fn count_flashes(&mut self, steps: usize) -> usize {
+    pub fn count_flashes(&mut self, steps: usize) -> (Option<usize>, usize) {
         let mut flashes = 0;
 
         for step in 1..steps + 1 {
@@ -141,6 +140,10 @@ impl Map {
                 }
             }
 
+            if self.inner.iter().flatten().all(|octopus| octopus.flashed) {
+                return (Some(step), 0);
+            }
+
             // energy level set to 0 for all octopuses that flashed.
             self.inner
                 .iter_mut()
@@ -152,7 +155,7 @@ impl Map {
                 });
         }
 
-        flashes
+        (None, flashes)
     }
 }
 
@@ -182,14 +185,15 @@ mod test {
     fn test_example_1() {
         let mut input = load_input("./src/example1.txt").expect("example1.txt couldn't be parsed");
 
-        assert_eq!(input.count_flashes(2), 9);
+        let (_, flashes) = input.count_flashes(2);
+        assert_eq!(flashes, 9);
     }
 
     #[test]
     fn test_example_2() {
         let mut input = load_input("./src/example2.txt").expect("example2.txt couldn't be parsed");
 
-        // assert_eq!(input.count_flashes(10), 204);
-        assert_eq!(input.count_flashes(100), 1656);
+        let (_, flashes) = input.count_flashes(100);
+        assert_eq!(flashes, 1656);
     }
 }
